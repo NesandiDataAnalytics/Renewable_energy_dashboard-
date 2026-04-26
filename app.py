@@ -143,4 +143,31 @@ with col_right:
     st.plotly_chart(fig_pie, use_container_width=True)
 
 st.markdown("---")
-st.info("Line chart and map coming soon...")
+
+# ── LINE CHART ────────────────────────────────────────────────────────────────
+st.markdown('<p class="section-title">📈 Trends Over Time — Country Comparison</p>', unsafe_allow_html=True)
+
+if selected_countries:
+    trend_data = filtered[filtered['Country'].isin(selected_countries)].dropna()
+    fig_line = px.line(
+        trend_data, x='Year', y='Capacity_W_per_capita', color='Country',
+        markers=True,
+        labels={'Capacity_W_per_capita': 'Watts per capita', 'Year': 'Year'},
+        color_discrete_sequence=px.colors.qualitative.Set1,
+        template='plotly_white'
+    )
+    fig_line.update_layout(
+        height=420,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        hovermode='x unified',
+        font=dict(size=13),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.25)
+    )
+    fig_line.update_traces(line=dict(width=2.5), marker=dict(size=6))
+    st.plotly_chart(fig_line, use_container_width=True)
+else:
+    st.info(" Select countries in the sidebar to compare trends over time.")
+
+st.markdown("---")
+st.info("World map and data table coming soon...")
