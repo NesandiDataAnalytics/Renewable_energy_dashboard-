@@ -70,7 +70,7 @@ selected_countries = st.sidebar.multiselect(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("**Data source:** [World Bank SE4ALL](https://data360.worldbank.org/en/indicator/WB_SE4ALL_EG_EGEN_RNEW)")
+st.sidebar.markdown("**Data source:** [World Bank SE4ALL](https://data360.worldbank.org/en/indicator/WB_SE4ALL_EG_IGEN_RNEW)")
 
 filtered = df[df['Energy_Source'] == selected_source]
 year_data = filtered[filtered['Year'] == selected_year].dropna()
@@ -88,18 +88,50 @@ col4.metric("📅 Selected year", selected_year)
 
 st.markdown("---")
 
+# ── KEY INSIGHTS ──────────────────────────────────────────────────────────────
+st.markdown('<p class="section-title">💡 Key Insights</p>', unsafe_allow_html=True)
+
+if leader is not None:
+    avg = year_data['Capacity_W_per_capita'].mean()
+    top_val = leader['Capacity_W_per_capita']
+    times_above = top_val / avg if avg > 0 else 0
+    bottom_country = year_data.nsmallest(1, 'Capacity_W_per_capita').iloc[0]
+    prev_year_data = filtered[filtered['Year'] == selected_year - 1].dropna()
+    if not prev_year_data.empty:
+        prev_avg = prev_year_data['Capacity_W_per_capita'].mean()
+        growth = ((avg - prev_avg) / prev_avg * 100) if prev_avg > 0 else 0
+        growth_text = f"Global average capacity grew by {growth:.1f}% compared to {selected_year - 1}."
+    else:
+        growth_text = "Select a year after 2000 to see growth."
+
+    col_i1, col_i2, col_i3 = st.columns(3)
+    with col_i1:
+        st.markdown(f"""<div class="insight-box">
+            🥇 <b>Leading country:</b> {leader['Country']} with {top_val:,.0f} W/capita —
+            that's {times_above:.1f}x the global average!
+        </div>""", unsafe_allow_html=True)
+    with col_i2:
+        st.markdown(f"""<div class="insight-box">
+            📉 <b>Lowest capacity:</b> {bottom_country['Country']} with only
+            {bottom_country['Capacity_W_per_capita']:,.1f} W/capita,
+            showing a huge gap between nations.
+        </div>""", unsafe_allow_html=True)
+    with col_i3:
+        st.markdown(f"""<div class="insight-box">
+            📈 <b>Year-on-year trend:</b> {growth_text}
+        </div>""", unsafe_allow_html=True)
+
+st.markdown("---")
+
 col_left, col_right = st.columns(2)
 with col_left:
     st.markdown(f'<p class="section-title">🏆 Top {top_n} Countries in {selected_year}</p>', unsafe_allow_html=True)
     fig_bar = px.bar(
         top_countries_df.sort_values('Capacity_W_per_capita'),
-        x='Capacity_W_per_capita', y='Country',
-        orientation='h',
-        color='Capacity_W_per_capita',
-        color_continuous_scale='Teal',
+        x='Capacity_W_per_capita', y='Country', orientation='h',
+        color='Capacity_W_per_capita', color_continuous_scale='Teal',
         labels={'Capacity_W_per_capita': 'Watts per capita', 'Country': ''},
-        template='plotly_white'
-    )
+        template='plotly_white')
     fig_bar.update_layout(showlegend=False, coloraxis_showscale=False, height=480,
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(size=13))
     st.plotly_chart(fig_bar, use_container_width=True)
@@ -125,7 +157,8 @@ if selected_countries:
         markers=True, labels={'Capacity_W_per_capita': 'Watts per capita', 'Year': 'Year'},
         color_discrete_sequence=px.colors.qualitative.Set1, template='plotly_white')
     fig_line.update_layout(height=420, plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        hovermode='x unified', font=dict(size=13), legend=dict(orientation="h", yanchor="bottom", y=-0.25))
+        hovermode='x unified', font=dict(size=13),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.25))
     fig_line.update_traces(line=dict(width=2.5), marker=dict(size=6))
     st.plotly_chart(fig_line, use_container_width=True)
 else:
@@ -144,9 +177,7 @@ st.plotly_chart(fig_map, use_container_width=True)
 
 st.markdown("---")
 
-# ── DATA TABLE ────────────────────────────────────────────────────────────────
 st.markdown('<p class="section-title">🔎 Explore Raw Data</p>', unsafe_allow_html=True)
-
 col_t1, col_t2 = st.columns([3, 1])
 with col_t1:
     search = st.text_input("Search by country name", placeholder="e.g. Germany, China, Brazil...")
@@ -172,4 +203,4 @@ st.dataframe(table_data, use_container_width=True, height=350,
     })
 
 st.markdown("---")
-st.info("Key insights coming soon...")
+st.caption("Data source: World Bank Sustainable Energy For All (SE4ALL) · Indicator: WB_SE4ALL_EG_EGEN_RNEW · Built with Streamlit & Plotly")
