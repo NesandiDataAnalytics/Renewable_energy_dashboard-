@@ -84,7 +84,6 @@ leader = top_countries_df.iloc[0] if len(top_countries_df) > 0 else None
 st.markdown('<p class="section-title">📊 Key Metrics</p>', unsafe_allow_html=True)
 
 col1, col2, col3, col4 = st.columns(4)
-
 col1.metric("🌍 Countries with data", len(year_data))
 col2.metric("🏆 Highest capacity",
     f"{top_countries_df['Capacity_W_per_capita'].max():,.0f} W/capita" if leader is not None else "N/A")
@@ -93,4 +92,28 @@ col3.metric("📈 Global average",
 col4.metric("📅 Selected year", selected_year)
 
 st.markdown("---")
-st.info("Charts coming next...")
+
+# ── BAR CHART ─────────────────────────────────────────────────────────────────
+st.markdown(f'<p class="section-title">🏆 Top {top_n} Countries in {selected_year}</p>', unsafe_allow_html=True)
+
+fig_bar = px.bar(
+    top_countries_df.sort_values('Capacity_W_per_capita'),
+    x='Capacity_W_per_capita', y='Country',
+    orientation='h',
+    color='Capacity_W_per_capita',
+    color_continuous_scale='Teal',
+    labels={'Capacity_W_per_capita': 'Watts per capita', 'Country': ''},
+    template='plotly_white'
+)
+fig_bar.update_layout(
+    showlegend=False,
+    coloraxis_showscale=False,
+    height=480,
+    plot_bgcolor='rgba(0,0,0,0)',
+    paper_bgcolor='rgba(0,0,0,0)',
+    font=dict(size=13)
+)
+st.plotly_chart(fig_bar, use_container_width=True)
+
+st.markdown("---")
+st.info("More charts coming soon...")
