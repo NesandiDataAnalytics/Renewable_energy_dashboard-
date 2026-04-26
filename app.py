@@ -93,27 +93,54 @@ col4.metric("📅 Selected year", selected_year)
 
 st.markdown("---")
 
-# ── BAR CHART ─────────────────────────────────────────────────────────────────
-st.markdown(f'<p class="section-title">🏆 Top {top_n} Countries in {selected_year}</p>', unsafe_allow_html=True)
+# ── BAR CHART + PIE CHART SIDE BY SIDE ───────────────────────────────────────
+col_left, col_right = st.columns(2)
 
-fig_bar = px.bar(
-    top_countries_df.sort_values('Capacity_W_per_capita'),
-    x='Capacity_W_per_capita', y='Country',
-    orientation='h',
-    color='Capacity_W_per_capita',
-    color_continuous_scale='Teal',
-    labels={'Capacity_W_per_capita': 'Watts per capita', 'Country': ''},
-    template='plotly_white'
-)
-fig_bar.update_layout(
-    showlegend=False,
-    coloraxis_showscale=False,
-    height=480,
-    plot_bgcolor='rgba(0,0,0,0)',
-    paper_bgcolor='rgba(0,0,0,0)',
-    font=dict(size=13)
-)
-st.plotly_chart(fig_bar, use_container_width=True)
+with col_left:
+    st.markdown(f'<p class="section-title">🏆 Top {top_n} Countries in {selected_year}</p>', unsafe_allow_html=True)
+    fig_bar = px.bar(
+        top_countries_df.sort_values('Capacity_W_per_capita'),
+        x='Capacity_W_per_capita', y='Country',
+        orientation='h',
+        color='Capacity_W_per_capita',
+        color_continuous_scale='Teal',
+        labels={'Capacity_W_per_capita': 'Watts per capita', 'Country': ''},
+        template='plotly_white'
+    )
+    fig_bar.update_layout(
+        showlegend=False,
+        coloraxis_showscale=False,
+        height=480,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=13)
+    )
+    st.plotly_chart(fig_bar, use_container_width=True)
+
+with col_right:
+    st.markdown(f'<p class="section-title">🔋 Energy Source Breakdown in {selected_year}</p>', unsafe_allow_html=True)
+    source_data = df[
+        (df['Year'] == selected_year) &
+        (df['Country'].isin(top_countries_df['Country'].tolist()))
+    ]
+    pie_data = source_data[source_data['Energy_Source'] != 'All renewables']\
+        .groupby('Energy_Source')['Capacity_W_per_capita'].mean().reset_index()
+    fig_pie = px.pie(
+        pie_data,
+        values='Capacity_W_per_capita',
+        names='Energy_Source',
+        hole=0.4,
+        color_discrete_sequence=px.colors.qualitative.Set2,
+        template='plotly_white'
+    )
+    fig_pie.update_layout(
+        height=480,
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=13),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.3)
+    )
+    fig_pie.update_traces(textposition='inside', textinfo='percent+label')
+    st.plotly_chart(fig_pie, use_container_width=True)
 
 st.markdown("---")
-st.info("More charts coming soon...")
+st.info("Line chart and map coming soon...")
