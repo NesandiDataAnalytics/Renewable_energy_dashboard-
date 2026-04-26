@@ -80,4 +80,17 @@ year_data = filtered[filtered['Year'] == selected_year].dropna()
 top_countries_df = year_data.nlargest(top_n, 'Capacity_W_per_capita')
 leader = top_countries_df.iloc[0] if len(top_countries_df) > 0 else None
 
-st.info("👈 Sidebar filters added! Key metrics and charts coming next...")
+# ── KEY METRICS ───────────────────────────────────────────────────────────────
+st.markdown('<p class="section-title">📊 Key Metrics</p>', unsafe_allow_html=True)
+
+col1, col2, col3, col4 = st.columns(4)
+
+col1.metric("🌍 Countries with data", len(year_data))
+col2.metric("🏆 Highest capacity",
+    f"{top_countries_df['Capacity_W_per_capita'].max():,.0f} W/capita" if leader is not None else "N/A")
+col3.metric("📈 Global average",
+    f"{year_data['Capacity_W_per_capita'].mean():,.1f} W/capita")
+col4.metric("📅 Selected year", selected_year)
+
+st.markdown("---")
+st.info("Charts coming next...")
