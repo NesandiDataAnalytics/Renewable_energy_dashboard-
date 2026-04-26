@@ -170,4 +170,27 @@ else:
     st.info(" Select countries in the sidebar to compare trends over time.")
 
 st.markdown("---")
-st.info("World map and data table coming soon...")
+
+# ── WORLD MAP ─────────────────────────────────────────────────────────────────
+st.markdown(f'<p class="section-title">🌍 World Map — Renewable Capacity in {selected_year}</p>', unsafe_allow_html=True)
+
+fig_map = px.choropleth(
+    year_data.dropna(),
+    locations='Country',
+    locationmode='country names',
+    color='Capacity_W_per_capita',
+    color_continuous_scale='YlOrRd',
+    labels={'Capacity_W_per_capita': 'W per capita'},
+    template='plotly_white'
+)
+fig_map.update_layout(
+    height=500,
+    geo=dict(showframe=False, showcoastlines=True, coastlinecolor='lightgrey',
+             bgcolor='rgba(0,0,0,0)'),
+    paper_bgcolor='rgba(0,0,0,0)',
+    coloraxis_colorbar=dict(title="W/capita", thickness=15)
+)
+st.plotly_chart(fig_map, use_container_width=True)
+
+st.markdown("---")
+st.info("Data table and insights coming soon...")
