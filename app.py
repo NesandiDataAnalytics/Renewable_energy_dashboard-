@@ -41,7 +41,6 @@ def load_data():
 
 df = load_data()
 
-# ── HERO HEADER ──────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="header-box">
     <h1 style="margin:0;font-size:2.2rem;">⚡ Global Renewable Energy Dashboard</h1>
@@ -51,7 +50,6 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── SIDEBAR ───────────────────────────────────────────────────────────────────
 st.sidebar.title("Dashboard Controls")
 st.sidebar.markdown("Use the filters below to explore the data.")
 
@@ -74,15 +72,12 @@ selected_countries = st.sidebar.multiselect(
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Data source:** [World Bank SE4ALL](https://data360.worldbank.org/en/indicator/WB_SE4ALL_EG_EGEN_RNEW)")
 
-# ── DATA FILTERING ────────────────────────────────────────────────────────────
 filtered = df[df['Energy_Source'] == selected_source]
 year_data = filtered[filtered['Year'] == selected_year].dropna()
 top_countries_df = year_data.nlargest(top_n, 'Capacity_W_per_capita')
 leader = top_countries_df.iloc[0] if len(top_countries_df) > 0 else None
 
-# ── KEY METRICS ───────────────────────────────────────────────────────────────
 st.markdown('<p class="section-title">📊 Key Metrics</p>', unsafe_allow_html=True)
-
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("🌍 Countries with data", len(year_data))
 col2.metric("🏆 Highest capacity",
@@ -93,9 +88,7 @@ col4.metric("📅 Selected year", selected_year)
 
 st.markdown("---")
 
-# ── BAR CHART + PIE CHART SIDE BY SIDE ───────────────────────────────────────
 col_left, col_right = st.columns(2)
-
 with col_left:
     st.markdown(f'<p class="section-title">🏆 Top {top_n} Countries in {selected_year}</p>', unsafe_allow_html=True)
     fig_bar = px.bar(
@@ -107,90 +100,76 @@ with col_left:
         labels={'Capacity_W_per_capita': 'Watts per capita', 'Country': ''},
         template='plotly_white'
     )
-    fig_bar.update_layout(
-        showlegend=False,
-        coloraxis_showscale=False,
-        height=480,
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=13)
-    )
+    fig_bar.update_layout(showlegend=False, coloraxis_showscale=False, height=480,
+        plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(size=13))
     st.plotly_chart(fig_bar, use_container_width=True)
 
 with col_right:
     st.markdown(f'<p class="section-title">🔋 Energy Source Breakdown in {selected_year}</p>', unsafe_allow_html=True)
-    source_data = df[
-        (df['Year'] == selected_year) &
-        (df['Country'].isin(top_countries_df['Country'].tolist()))
-    ]
+    source_data = df[(df['Year'] == selected_year) & (df['Country'].isin(top_countries_df['Country'].tolist()))]
     pie_data = source_data[source_data['Energy_Source'] != 'All renewables']\
         .groupby('Energy_Source')['Capacity_W_per_capita'].mean().reset_index()
-    fig_pie = px.pie(
-        pie_data,
-        values='Capacity_W_per_capita',
-        names='Energy_Source',
-        hole=0.4,
-        color_discrete_sequence=px.colors.qualitative.Set2,
-        template='plotly_white'
-    )
-    fig_pie.update_layout(
-        height=480,
-        paper_bgcolor='rgba(0,0,0,0)',
-        font=dict(size=13),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.3)
-    )
+    fig_pie = px.pie(pie_data, values='Capacity_W_per_capita', names='Energy_Source',
+        hole=0.4, color_discrete_sequence=px.colors.qualitative.Set2, template='plotly_white')
+    fig_pie.update_layout(height=480, paper_bgcolor='rgba(0,0,0,0)', font=dict(size=13),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.3))
     fig_pie.update_traces(textposition='inside', textinfo='percent+label')
     st.plotly_chart(fig_pie, use_container_width=True)
 
 st.markdown("---")
 
-# ── LINE CHART ────────────────────────────────────────────────────────────────
 st.markdown('<p class="section-title">📈 Trends Over Time — Country Comparison</p>', unsafe_allow_html=True)
-
 if selected_countries:
     trend_data = filtered[filtered['Country'].isin(selected_countries)].dropna()
-    fig_line = px.line(
-        trend_data, x='Year', y='Capacity_W_per_capita', color='Country',
-        markers=True,
-        labels={'Capacity_W_per_capita': 'Watts per capita', 'Year': 'Year'},
-        color_discrete_sequence=px.colors.qualitative.Set1,
-        template='plotly_white'
-    )
-    fig_line.update_layout(
-        height=420,
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
-        hovermode='x unified',
-        font=dict(size=13),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.25)
-    )
+    fig_line = px.line(trend_data, x='Year', y='Capacity_W_per_capita', color='Country',
+        markers=True, labels={'Capacity_W_per_capita': 'Watts per capita', 'Year': 'Year'},
+        color_discrete_sequence=px.colors.qualitative.Set1, template='plotly_white')
+    fig_line.update_layout(height=420, plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
+        hovermode='x unified', font=dict(size=13), legend=dict(orientation="h", yanchor="bottom", y=-0.25))
     fig_line.update_traces(line=dict(width=2.5), marker=dict(size=6))
     st.plotly_chart(fig_line, use_container_width=True)
 else:
-    st.info(" Select countries in the sidebar to compare trends over time.")
+    st.info("👈 Select countries in the sidebar to compare trends over time.")
 
 st.markdown("---")
 
-# ── WORLD MAP ─────────────────────────────────────────────────────────────────
 st.markdown(f'<p class="section-title">🌍 World Map — Renewable Capacity in {selected_year}</p>', unsafe_allow_html=True)
-
-fig_map = px.choropleth(
-    year_data.dropna(),
-    locations='Country',
-    locationmode='country names',
-    color='Capacity_W_per_capita',
-    color_continuous_scale='YlOrRd',
-    labels={'Capacity_W_per_capita': 'W per capita'},
-    template='plotly_white'
-)
-fig_map.update_layout(
-    height=500,
-    geo=dict(showframe=False, showcoastlines=True, coastlinecolor='lightgrey',
-             bgcolor='rgba(0,0,0,0)'),
-    paper_bgcolor='rgba(0,0,0,0)',
-    coloraxis_colorbar=dict(title="W/capita", thickness=15)
-)
+fig_map = px.choropleth(year_data.dropna(), locations='Country', locationmode='country names',
+    color='Capacity_W_per_capita', color_continuous_scale='YlOrRd',
+    labels={'Capacity_W_per_capita': 'W per capita'}, template='plotly_white')
+fig_map.update_layout(height=500,
+    geo=dict(showframe=False, showcoastlines=True, coastlinecolor='lightgrey', bgcolor='rgba(0,0,0,0)'),
+    paper_bgcolor='rgba(0,0,0,0)', coloraxis_colorbar=dict(title="W/capita", thickness=15))
 st.plotly_chart(fig_map, use_container_width=True)
 
 st.markdown("---")
-st.info("Data table and insights coming soon...")
+
+# ── DATA TABLE ────────────────────────────────────────────────────────────────
+st.markdown('<p class="section-title">🔎 Explore Raw Data</p>', unsafe_allow_html=True)
+
+col_t1, col_t2 = st.columns([3, 1])
+with col_t1:
+    search = st.text_input("Search by country name", placeholder="e.g. Germany, China, Brazil...")
+with col_t2:
+    show_all_years = st.checkbox("Show all years", value=False)
+
+table_data = filtered.copy() if show_all_years else year_data.copy()
+if search:
+    table_data = table_data[table_data['Country'].str.contains(search, case=False, na=False)]
+
+table_data = table_data.sort_values('Capacity_W_per_capita', ascending=False).reset_index(drop=True)
+table_data.index += 1
+table_data['Capacity_W_per_capita'] = table_data['Capacity_W_per_capita'].round(2)
+
+st.dataframe(table_data, use_container_width=True, height=350,
+    column_config={
+        "Country": st.column_config.TextColumn("Country"),
+        "Energy_Source": st.column_config.TextColumn("Energy Source"),
+        "Year": st.column_config.NumberColumn("Year", format="%d"),
+        "Capacity_W_per_capita": st.column_config.ProgressColumn(
+            "Capacity (W/capita)", min_value=0,
+            max_value=float(df['Capacity_W_per_capita'].max()), format="%.1f")
+    })
+
+st.markdown("---")
+st.info("Key insights coming soon...")
